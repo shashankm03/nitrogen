@@ -12,3 +12,58 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model Customer {
+  id          Int     @id @default(autoincrement())
+  name        String  @db.VarChar(255)
+  email       String  @unique @db.VarChar(255)
+  phoneNumber String  @unique @db.VarChar(20)
+  address     String  @db.Text
+  orders      Order[]
+}
+
+model Restaurant {
+  id       Int        @id @default(autoincrement())
+  name     String     @unique @db.VarChar(255)
+  location String     @db.Text
+  menu     MenuItem[]
+  orders   Order[]
+}
+
+model MenuItem {
+  id           Int       @id @default(autoincrement())
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
+  restaurantId Int
+  name         String    @db.VarChar(255)
+  price        Decimal   @db.Decimal(10,2)
+  isAvailable  Boolean   @default(true)
+  orderItems   OrderItem[]
+}
+
+model Order {
+  id           Int       @id @default(autoincrement())
+  customer     Customer  @relation(fields: [customerId], references: [id])
+  customerId   Int
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
+  restaurantId Int
+  status       OrderStatus @default(Placed)
+  totalPrice   Decimal   @db.Decimal(10,2)
+  orderTime    DateTime  @default(now())
+  orderItems   OrderItem[]
+}
+
+model OrderItem {
+  id         Int      @id @default(autoincrement())
+  order      Order    @relation(fields: [orderId], references: [id])
+  orderId    Int
+  menuItem   MenuItem @relation(fields: [menuItemId], references: [id])
+  menuItemId Int
+  quantity   Int
+}
+
+enum OrderStatus {
+  Placed
+  Preparing
+  Completed
+  Cancelled
+}
